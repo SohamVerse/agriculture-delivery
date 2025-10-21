@@ -57,6 +57,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Clear cart after successful payment
+    if (order && order.user_id) {
+      await db.collection("cart").deleteMany({ user_id: order.user_id })
+    }
+
     return NextResponse.json({
       success: true,
       message: "Payment verified successfully",

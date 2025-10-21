@@ -43,7 +43,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     setLoading(true)
     try {
-      await addToCart(product.id, 1)
+      await addToCart(product.id.toString(), 1)
       toast({
         title: "Added to Cart",
         description: `${product.name} has been added to your cart`,

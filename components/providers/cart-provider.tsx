@@ -6,8 +6,8 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 
 interface CartItem {
-  id: number
-  product_id: number
+  id: string
+  product_id: string
   name: string
   name_hi?: string
   price: number
@@ -17,9 +17,9 @@ interface CartItem {
 
 interface CartContextType {
   items: CartItem[]
-  addToCart: (productId: number, quantity?: number) => Promise<void>
-  removeFromCart: (productId: number) => Promise<void>
-  updateQuantity: (productId: number, quantity: number) => Promise<void>
+  addToCart: (productId: string, quantity?: number) => Promise<void>
+  removeFromCart: (productId: string) => Promise<void>
+  updateQuantity: (productId: string, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
   totalItems: number
   totalAmount: number
@@ -62,7 +62,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const addToCart = async (productId: number, quantity = 1) => {
+  const addToCart = async (productId: string, quantity = 1) => {
     if (!user) return
 
     try {
@@ -84,7 +84,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const removeFromCart = async (productId: number) => {
+  const removeFromCart = async (productId: string) => {
     if (!user) return
 
     try {
@@ -102,7 +102,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const updateQuantity = async (productId: number, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number) => {
     if (!user) return
 
     try {

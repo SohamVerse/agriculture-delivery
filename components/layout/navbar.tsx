@@ -170,13 +170,23 @@ export function Navbar() {
               ))}
 
               {isAuthenticated && (
-                <Link
-                  href="/orders"
-                  className="text-gray-700 hover:text-green-600 font-medium py-2"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Orders
-                </Link>
+                <>
+                  <Link
+                    href="/cart"
+                    className="text-gray-700 hover:text-green-600 font-medium py-2 flex items-center"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Cart {totalItems > 0 && `(${totalItems})`}
+                  </Link>
+                  <Link
+                    href="/orders"
+                    className="text-gray-700 hover:text-green-600 font-medium py-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Orders
+                  </Link>
+                </>
               )}
 
               {user?.role === "admin" && (
