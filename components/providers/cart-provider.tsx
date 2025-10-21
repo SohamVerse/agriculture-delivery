@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { useAuth } from "./auth-provider"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface CartItem {
   id: number

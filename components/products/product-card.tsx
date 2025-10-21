@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/components/providers/cart-provider"
-import { useAuth } from "@/components/providers/auth-provider"
+import { useAuth } from "@/contexts/AuthContext"
 import { useLanguage } from "@/components/providers/language-provider"
 import { useToast } from "@/hooks/use-toast"
 

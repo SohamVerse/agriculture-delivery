@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { getAuthUser } from "@/lib/auth"
 import clientPromise from "@/lib/mongodb"
-import { ObjectId } from "mongodb"
 
 export async function GET() {
   try {
@@ -14,22 +13,16 @@ export async function GET() {
     const client = await clientPromise
     const db = client.db("agridelivery")
 
-    const user = await db.collection("users").findOne({ _id: new ObjectId(authUser.id) })
+    const orders = await db
+      .collection("orders")
+      .find({ user_id: authUser.id })
+      .sort({ timestamp: -1 })
+      .toArray()
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    const { password: _, ...userWithoutPassword } = user
-
-    return NextResponse.json({
-      user: {
-        ...userWithoutPassword,
-        id: user._id.toString(),
-      },
-    })
+    return NextResponse.json({ orders })
   } catch (error) {
-    console.error("Auth error:", error)
+    console.error("Error fetching orders:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+

@@ -1,13 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
-import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs"
+import { generateToken, setAuthCookie } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password, name, phone, address } = await request.json()
 
     if (!email || !password || !name) {
-      return NextResponse.json({ error: "Email, password, and name are required" }, { status: 400 })
+      return NextResponse.json({ error: "Email, password and name are required" }, { status: 400 })
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 })
     }
 
     const client = await clientPromise
@@ -20,32 +32,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User already exists" }, { status: 409 })
     }
 
-    // Create user
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Create new user
     const newUser = {
       email,
-      password, // In production, hash this
+      password: hashedPassword,
       name,
-      phone: phone || null,
-      address: address || null,
+      phone: phone || "",
+      address: address || "",
       role: "customer",
       createdAt: new Date(),
       updatedAt: new Date(),
     }
 
     const result = await db.collection("users").insertOne(newUser)
+    const userId = result.insertedId.toString()
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: result.insertedId.toString(), email, role: "customer" },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "7d" },
-    )
+    // Generate token and set cookie
+    const token = generateToken({
+      id: userId,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+    })
+
+    await setAuthCookie(token)
 
     return NextResponse.json({
+      success: true,
+      message: "User registered successfully",
       token,
       user: {
-        ...newUser,
-        id: result.insertedId.toString(),
+        id: userId,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        phone: newUser.phone,
+        address: newUser.address,
       },
     })
   } catch (error) {

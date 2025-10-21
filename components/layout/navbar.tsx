@@ -2,25 +2,38 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { ShoppingCart, User, Menu, X, Globe } from "lucide-react"
+import { ShoppingCart, User, Menu, X, Globe, LogOut, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/components/providers/auth-provider"
+import { useAuth } from "@/contexts/AuthContext"
 import { useCart } from "@/components/providers/cart-provider"
 import { useLanguage } from "@/components/providers/language-provider"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useRouter } from "next/navigation"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, logout, isAuthenticated } = useAuth()
   const { totalItems } = useCart()
   const { language, setLanguage, t } = useLanguage()
+  const router = useRouter()
 
   const navigation = [
     { name: t("nav.home"), href: "/" },
     { name: t("nav.products"), href: "/products" },
-    { name: t("nav.orders"), href: "/orders" },
   ]
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/")
+    router.refresh()
+  }
 
   return (
     <nav className="bg-white/95 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50">
@@ -46,9 +59,15 @@ export function Navbar() {
               </Link>
             ))}
 
+            {isAuthenticated && (
+              <Link href="/orders" className="text-gray-700 hover:text-green-600 font-medium transition-colors">
+                Orders
+              </Link>
+            )}
+
             {user?.role === "admin" && (
               <Link href="/admin" className="text-gray-700 hover:text-green-600 font-medium transition-colors">
-                {t("nav.admin")}
+                Admin
               </Link>
             )}
           </div>
@@ -70,7 +89,7 @@ export function Navbar() {
             </DropdownMenu>
 
             {/* Cart */}
-            {user && (
+            {isAuthenticated && (
               <Link href="/cart">
                 <Button variant="ghost" size="sm" className="relative">
                   <ShoppingCart className="h-5 w-5" />
@@ -84,28 +103,43 @@ export function Navbar() {
             )}
 
             {/* User Menu */}
-            {user ? (
+            {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4 mr-1" />
-                    {user.name}
+                    <User className="h-4 w-4 mr-2" />
+                    {user?.name}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={logout}>{t("nav.logout")}</DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5 text-sm text-gray-500">
+                    <p className="font-medium text-gray-900">{user?.name}</p>
+                    <p className="text-xs truncate">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders" className="cursor-pointer">
+                      <Package className="h-4 w-4 mr-2" />
+                      My Orders
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <div className="flex space-x-2">
-                <Link href="/auth/login">
+                <Link href="/login">
                   <Button variant="ghost" size="sm">
-                    {t("nav.login")}
+                    Login
                   </Button>
                 </Link>
-                <Link href="/auth/register">
-                  <Button size="sm" className="agri-button">
-                    {t("nav.register")}
+                <Link href="/register">
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    Sign Up
                   </Button>
                 </Link>
               </div>
@@ -135,13 +169,23 @@ export function Navbar() {
                 </Link>
               ))}
 
+              {isAuthenticated && (
+                <Link
+                  href="/orders"
+                  className="text-gray-700 hover:text-green-600 font-medium py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Orders
+                </Link>
+              )}
+
               {user?.role === "admin" && (
                 <Link
                   href="/admin"
                   className="text-gray-700 hover:text-green-600 font-medium py-2"
                   onClick={() => setIsOpen(false)}
                 >
-                  {t("nav.admin")}
+                  Admin
                 </Link>
               )}
 
@@ -155,20 +199,20 @@ export function Navbar() {
                   </Button>
                 </div>
 
-                {user ? (
-                  <Button variant="ghost" size="sm" onClick={logout}>
-                    {t("nav.logout")}
+                {isAuthenticated ? (
+                  <Button variant="ghost" size="sm" onClick={handleLogout}>
+                    Logout
                   </Button>
                 ) : (
                   <div className="flex space-x-2">
-                    <Link href="/auth/login">
+                    <Link href="/login">
                       <Button variant="ghost" size="sm">
-                        {t("nav.login")}
+                        Login
                       </Button>
                     </Link>
-                    <Link href="/auth/register">
-                      <Button size="sm" className="agri-button">
-                        {t("nav.register")}
+                    <Link href="/register">
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                        Sign Up
                       </Button>
                     </Link>
                   </div>

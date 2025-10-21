@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
-import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs"
+import { generateToken, setAuthCookie } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,29 +21,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    // For demo purposes, we'll skip password hashing verification
-    // In production, use: const isValidPassword = await bcrypt.compare(password, user.password)
-    const isValidPassword = password === user.password
+    // Verify password
+    let isValidPassword = false
+    if (user.password.startsWith("$2")) {
+      // Hashed password
+      isValidPassword = await bcrypt.compare(password, user.password)
+    } else {
+      // Plain text password (for existing seed data)
+      isValidPassword = password === user.password
+    }
 
     if (!isValidPassword) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id.toString(), email: user.email, role: user.role },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "7d" },
-    )
+    const userId = user._id.toString()
+    const token = generateToken({
+      id: userId,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    })
+
+    // Set HTTP-only cookie
+    await setAuthCookie(token)
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user
 
     return NextResponse.json({
+      success: true,
       token,
       user: {
         ...userWithoutPassword,
-        id: user._id.toString(),
+        id: userId,
       },
     })
   } catch (error) {

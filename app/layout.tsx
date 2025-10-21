@@ -2,13 +2,13 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { AuthProvider } from "@/components/providers/auth-provider"
+import { AuthProvider } from "@/contexts/AuthContext"
 import { CartProvider } from "@/components/providers/cart-provider"
 import { LanguageProvider } from "@/components/providers/language-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
-import { ChatbotWidget } from "@/components/chatbot/chatbot-widget"
+import { EnhancedChatbot } from "@/components/chatbot/enhanced-chatbot"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -33,7 +33,7 @@ export default function RootLayout({
                 <Navbar />
                 <main className="min-h-[calc(100vh-140px)]">{children}</main>
                 <Footer />
-                <ChatbotWidget />
+                <EnhancedChatbot />
                 <Toaster />
               </div>
             </CartProvider>
